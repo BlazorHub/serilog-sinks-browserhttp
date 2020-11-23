@@ -10,7 +10,7 @@ using Serilog.Formatting.Compact.Reader;
 
 namespace Serilog.AspNetCore.Ingestion
 {
-    class SerilogIngestionMiddleware
+    public class SerilogIngestionMiddleware
     {
         readonly string _originPropertyName;
         readonly string _endpointPath;
