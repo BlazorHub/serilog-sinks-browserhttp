@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
@@ -29,7 +28,7 @@ using System.Threading.Tasks;
 
 namespace Serilog.Sinks.BrowserHttp
 {
-	class BrowserHttpSink : PeriodicBatchingSink
+    class BrowserHttpSink : PeriodicBatchingSink
 	{
 		public const int DefaultBatchPostingLimit = 1000;
 		public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(2);
@@ -52,22 +51,24 @@ namespace Serilog.Sinks.BrowserHttp
 			long? eventBodyLimitBytes,
 			LoggingLevelSwitch levelControlSwitch,
 			int queueSizeLimit,
-			HttpMessageHandler messageHandler)
+			HttpMessageHandler messageHandler,
+			IDictionary<string, string> defaultRequestHeaders)
 			: base(batchPostingLimit, period, queueSizeLimit)
 		{
 			_endpointUrl = endpointUrl ?? throw new ArgumentNullException(nameof(endpointUrl));
 			_eventBodyLimitBytes = eventBodyLimitBytes;
 			_controlledSwitch = new ControlledLevelSwitch(levelControlSwitch);
 			_httpClient = messageHandler == null ?
-				new HttpClient() { BaseAddress = GetBaseAddress() } :
-				new HttpClient(messageHandler) { BaseAddress = GetBaseAddress() };
-		}
+				new HttpClient() { } :
+				new HttpClient(messageHandler) { };
 
-		static Uri GetBaseAddress()
-		{
-			var builder = WebAssemblyHostBuilder.CreateDefault();
-
-			return new Uri(builder.HostEnvironment.BaseAddress);
+			if (defaultRequestHeaders != null)
+			{
+				foreach (var header in defaultRequestHeaders)
+				{
+					_httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+				}
+			}
 		}
 
 		protected override void Dispose(bool disposing)
